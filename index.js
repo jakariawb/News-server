@@ -1,16 +1,19 @@
+
 require("dotenv").config();
 
-const express = require("express");
-const cors = require("cors");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-
+const express = require('express');
 const app = express();
+const cors = require("cors")
+const port = process.env.PORT || 1000
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
-app.use(cors());
-app.use(express.json());
 
-const uri = process.env.MONGODB_URI;
+app.use(cors())
+app.use(express.json())
 
+
+
+const uri = `mongodb://hello:ciXyUvRB8H3lbpgZ@ac-mtmgpz4-shard-00-00.2kiuxiv.mongodb.net:27017,ac-mtmgpz4-shard-00-01.2kiuxiv.mongodb.net:27017,ac-mtmgpz4-shard-00-02.2kiuxiv.mongodb.net:27017/?ssl=true&replicaSet=atlas-8375j8-shard-0&authSource=admin&appName=Cluster0&compressors=zlib`
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -19,84 +22,73 @@ const client = new MongoClient(uri, {
   },
 });
 
-const database = client.db("muDatabase");
-const saveNews = database.collection("saveNewsData");
-const usersCollection = database.collection("userData");
+// const saveNews = 
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+async function runGetStarted() {
 
-app.get("/bookMark", async (req, res) => {
+
+
   try {
-    const email = req.query.email;
+    //data base collection
+    const database = client.db("muDatabase")
+    const saveNews = database.collection("saveNewsData")
+    const usersCollaction = database.collection("userData")
 
-    const result = await saveNews
-      .find({ userEmail: email })
-      .toArray();
+    app.post("/markNews", async (req, res) => {
+      const markData = req.body
+      const result = await saveNews.insertOne(markData)
+      res.send(result)
+    })
+    app.post("/userData", async (req, res) => {
+      const user = req.body;
 
-    res.send(result);
-  } catch (error) {
-    console.error("BOOKMARK ERROR:", error);
+      const result = await usersCollaction.insertOne(user)
+      res.send(result)
+    })
+    app.get("/bookMark", async (req, res) => {
+      const email = req.query.email
+      const query = {
+        userEmail: email
+      }
+      const result = await saveNews
+        .find(query)
+        .toArray();
 
-    res.status(500).send({
-      message: "Failed to get bookmark",
-      error: error.message,
+      console.log(result);
+
+      res.send(result);
     });
+
+  
+    app.delete("/bookMark/:id", async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const result = await saveNews.deleteOne(query)
+      res.send(result)
+    })
+
+
+
+    const result = await client.db('admin').command({ ping: 1 });
+    console.log(
+      'Pinged your deployment. You successfully connected to MongoDB!'
+    );
+
+    // Queries for a movie that has a title value of 'Back to the Future'
+
+  } finally {
+
+
   }
-});
+}
+runGetStarted()
 
-app.post("/markNews", async (req, res) => {
-  try {
-    const markData = req.body;
 
-    const result = await saveNews.insertOne(markData);
 
-    res.send(result);
-  } catch (error) {
-    console.error("MARK NEWS ERROR:", error);
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
 
-    res.status(500).send({
-      message: "Failed to save news",
-      error: error.message,
-    });
-  }
-});
+export default app
 
-app.post("/userData", async (req, res) => {
-  try {
-    const user = req.body;
-
-    const result = await usersCollection.insertOne(user);
-
-    res.send(result);
-  } catch (error) {
-    console.error("USER ERROR:", error);
-
-    res.status(500).send({
-      message: "Failed to save user",
-      error: error.message,
-    });
-  }
-});
-
-app.delete("/bookMark/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-
-    const result = await saveNews.deleteOne({
-      _id: new ObjectId(id),
-    });
-
-    res.send(result);
-  } catch (error) {
-    console.error("DELETE ERROR:", error);
-
-    res.status(500).send({
-      message: "Failed to delete bookmark",
-      error: error.message,
-    });
-  }
-});
-
-module.exports = app;
+// /TDNFRTBC
