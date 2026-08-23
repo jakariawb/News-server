@@ -5,7 +5,7 @@ const express = require('express');
 const app = express();
 const cors = require("cors")
 const port = process.env.PORT || 1000
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 app.use(cors())
@@ -22,11 +22,51 @@ const client = new MongoClient(uri, {
   },
 });
 
+// const saveNews = 
+
 async function runGetStarted() {
-  // Replace the uri string with your connection string
+
 
 
   try {
+    //data base collection
+    const database = client.db("muDatabase")
+    const saveNews = database.collection("saveNewsData")
+    const usersCollaction = database.collection("userData")
+
+    app.post("/markNews", async (req, res) => {
+      const markData = req.body
+      const result = await saveNews.insertOne(markData)
+      res.send(result)
+    })
+    app.post("/userData", async (req, res) => {
+      const user = req.body;
+
+      const result = await usersCollaction.insertOne(user)
+      res.send(result)
+    })
+    app.get("/bookMark", async (req, res) => {
+      const email = req.query.email
+      const query = {
+        userEmail: email
+      }
+      const result = await saveNews
+        .find(query)
+        .toArray();
+
+      console.log(result);
+
+      res.send(result);
+    });
+
+  
+    app.delete("/bookMark/:id", async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const result = await saveNews.deleteOne(query)
+      res.send(result)
+    })
+
 
 
     const result = await client.db('admin').command({ ping: 1 });
@@ -37,11 +77,11 @@ async function runGetStarted() {
     // Queries for a movie that has a title value of 'Back to the Future'
 
   } finally {
-    await client.close();
+
 
   }
 }
-runGetStarted().catch(console.dir);
+runGetStarted()
 
 
 
