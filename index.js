@@ -1,19 +1,16 @@
-
 require("dotenv").config();
 
-const express = require('express');
+const express = require("express");
+const cors = require("cors");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+
 const app = express();
-const cors = require("cors")
-const port = process.env.PORT || 1000
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
+app.use(cors());
+app.use(express.json());
 
-app.use(cors())
-app.use(express.json())
+const uri = process.env.MONGODB_URI;
 
-
-
-const uri = `mongodb://hello:ciXyUvRB8H3lbpgZ@ac-mtmgpz4-shard-00-00.2kiuxiv.mongodb.net:27017,ac-mtmgpz4-shard-00-01.2kiuxiv.mongodb.net:27017,ac-mtmgpz4-shard-00-02.2kiuxiv.mongodb.net:27017/?ssl=true&replicaSet=atlas-8375j8-shard-0&authSource=admin&appName=Cluster0&compressors=zlib`
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -22,71 +19,100 @@ const client = new MongoClient(uri, {
   },
 });
 
-// const saveNews = 
+const database = client.db("muDatabase");
+const saveNews = database.collection("saveNewsData");
+const usersCollection = database.collection("userData");
 
-async function runGetStarted() {
+// Home route
+app.get("/", (req, res) => {
+  res.send("Dragon News Server is Running");
+});
 
-
-
+// Save news
+app.post("/markNews", async (req, res) => {
   try {
-    //data base collection
-    const database = client.db("muDatabase")
-    const saveNews = database.collection("saveNewsData")
-    const usersCollaction = database.collection("userData")
+    const markData = req.body;
 
-    app.post("/markNews", async (req, res) => {
-      const markData = req.body
-      const result = await saveNews.insertOne(markData)
-      res.send(result)
-    })
-    app.post("/userData", async (req, res) => {
-      const user = req.body;
+    const result = await saveNews.insertOne(markData);
 
-      const result = await usersCollaction.insertOne(user)
-      res.send(result)
-    })
-    app.get("/bookMark", async (req, res) => {
-      const email = req.query.email
-      const query = {
-        userEmail: email
-      }
-      const result = await saveNews
-        .find(query)
-        .toArray();
-
-      console.log(result);
-
-      res.send(result);
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      message: "Failed to save news",
+      error: error.message,
     });
-
-  
-    app.delete("/bookMark/:id", async (req, res) => {
-      const id = req.params.id
-      const query = { _id: new ObjectId(id) }
-      const result = await saveNews.deleteOne(query)
-      res.send(result)
-    })
-
-
-
-    const result = await client.db('admin').command({ ping: 1 });
-    console.log(
-      'Pinged your deployment. You successfully connected to MongoDB!'
-    );
-
-    // Queries for a movie that has a title value of 'Back to the Future'
-
-  } finally {
-
-
   }
-}
-runGetStarted()
+});
 
+// Save user
+app.post("/userData", async (req, res) => {
+  try {
+    const user = req.body;
 
+    const result = await usersCollection.insertOne(user);
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      message: "Failed to save user",
+      error: error.message,
+    });
+  }
+});
 
-export default app
+// Get bookmark
+app.get("/bookMark", async (req, res) => {
+  try {
+    const email = req.query.email;
+
+    const query = {
+      userEmail: email,
+    };
+
+    const result = await saveNews.find(query).toArray();
+
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      message: "Failed to get bookmarks",
+      error: error.message,
+    });
+  }
+});
+
+// Delete bookmark
+app.delete("/bookMark/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const query = {
+      _id: new ObjectId(id),
+    };
+
+    const result = await saveNews.deleteOne(query);
+
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      message: "Failed to delete bookmark",
+      error: error.message,
+    });
+  }
+});
+
+// MongoDB connection test
+client
+  .db("admin")
+  .command({ ping: 1 })
+  .then(() => {
+    console.log("MongoDB connected successfully");
+  })
+  .catch((error) => {
+    console.error("MongoDB connection error:", error);
+  });
+
+module.exports = app;
