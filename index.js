@@ -23,12 +23,29 @@ const database = client.db("muDatabase");
 const saveNews = database.collection("saveNewsData");
 const usersCollection = database.collection("userData");
 
-// Home route
 app.get("/", (req, res) => {
-  res.send("Dragon News Server is Running");
+  res.send("Hello World!");
 });
 
-// Save news
+app.get("/bookMark", async (req, res) => {
+  try {
+    const email = req.query.email;
+
+    const result = await saveNews
+      .find({ userEmail: email })
+      .toArray();
+
+    res.send(result);
+  } catch (error) {
+    console.error("BOOKMARK ERROR:", error);
+
+    res.status(500).send({
+      message: "Failed to get bookmark",
+      error: error.message,
+    });
+  }
+});
+
 app.post("/markNews", async (req, res) => {
   try {
     const markData = req.body;
@@ -37,7 +54,8 @@ app.post("/markNews", async (req, res) => {
 
     res.send(result);
   } catch (error) {
-    console.error(error);
+    console.error("MARK NEWS ERROR:", error);
+
     res.status(500).send({
       message: "Failed to save news",
       error: error.message,
@@ -45,7 +63,6 @@ app.post("/markNews", async (req, res) => {
   }
 });
 
-// Save user
 app.post("/userData", async (req, res) => {
   try {
     const user = req.body;
@@ -54,7 +71,8 @@ app.post("/userData", async (req, res) => {
 
     res.send(result);
   } catch (error) {
-    console.error(error);
+    console.error("USER ERROR:", error);
+
     res.status(500).send({
       message: "Failed to save user",
       error: error.message,
@@ -62,57 +80,23 @@ app.post("/userData", async (req, res) => {
   }
 });
 
-// Get bookmark
-app.get("/bookMark", async (req, res) => {
-  try {
-    const email = req.query.email;
-
-    const query = {
-      userEmail: email,
-    };
-
-    const result = await saveNews.find(query).toArray();
-
-    res.send(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({
-      message: "Failed to get bookmarks",
-      error: error.message,
-    });
-  }
-});
-
-// Delete bookmark
 app.delete("/bookMark/:id", async (req, res) => {
   try {
     const id = req.params.id;
 
-    const query = {
+    const result = await saveNews.deleteOne({
       _id: new ObjectId(id),
-    };
-
-    const result = await saveNews.deleteOne(query);
+    });
 
     res.send(result);
   } catch (error) {
-    console.error(error);
+    console.error("DELETE ERROR:", error);
+
     res.status(500).send({
       message: "Failed to delete bookmark",
       error: error.message,
     });
   }
 });
-
-// MongoDB connection test
-client
-  .db("admin")
-  .command({ ping: 1 })
-  .then(() => {
-    console.log("MongoDB connected successfully");
-  })
-  .catch((error) => {
-    console.error("MongoDB connection error:", error);
-  });
 
 module.exports = app;
