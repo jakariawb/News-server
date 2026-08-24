@@ -23,16 +23,16 @@ const client = new MongoClient(uri, {
 });
 
 // const saveNews = 
+const database = client.db("muDatabase")
+const saveNews = database.collection("saveNewsData")
+const usersCollaction = database.collection("userData")
 
-async function runGetStarted() {
+
 
 
 
   try {
     //data base collection
-    const database = client.db("muDatabase")
-    const saveNews = database.collection("saveNewsData")
-    const usersCollaction = database.collection("userData")
 
     app.post("/markNews", async (req, res) => {
       const markData = req.body
@@ -59,7 +59,7 @@ async function runGetStarted() {
       res.send(result);
     });
 
-  
+
     app.delete("/bookMark/:id", async (req, res) => {
       const id = req.params.id
       const query = { _id: new ObjectId(id) }
@@ -80,8 +80,7 @@ async function runGetStarted() {
 
 
   }
-}
-runGetStarted()
+
 
 
 
