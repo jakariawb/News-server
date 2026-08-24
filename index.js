@@ -37,7 +37,13 @@ app.get('/', (req, res) => {
 
   app.post("/userContact" , async(req , res)=>{
     const contact = req.body
-    const result = await contactCollaction.insertOne(contact)
+    const contactInfo = {
+      ...contact,
+          createAr :new Date().toLocaleString("en-BD" , {
+            timeZone : "Asia/Dhaka"
+          })
+    }
+    const result = await contactCollaction.insertOne(contactInfo)
     console.log(result)
     res.send(result)
   })
