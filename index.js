@@ -30,8 +30,10 @@ const usersCollaction = database.collection("userData")
 
 
 
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
 
-  try {
     //data base collection
 
     app.post("/markNews", async (req, res) => {
@@ -69,18 +71,14 @@ const usersCollaction = database.collection("userData")
 
 
 
-    const result = await client.db('admin').command({ ping: 1 });
+     client.db('admin').command({ ping: 1 });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!'
     );
 
     // Queries for a movie that has a title value of 'Back to the Future'
 
-  } finally {
-
-
-  }
-
+  
 
 
 
