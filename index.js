@@ -89,6 +89,6 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
-export default app
+module.export = app
 
 // /TDNFRTBC
