@@ -26,6 +26,7 @@ const client = new MongoClient(uri, {
 const database = client.db("muDatabase")
 const saveNews = database.collection("saveNewsData")
 const usersCollaction = database.collection("userData")
+const contactCollaction = database.collection("contact")
 
 
 
@@ -34,6 +35,12 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
+  app.post("/userContact" , async(req , res)=>{
+    const contact = req.body
+    const result = await contactCollaction.insertOne(contact)
+    console.log(result)
+    res.send(result)
+  })
     //data base collection
 
     app.post("/markNews", async (req, res) => {
